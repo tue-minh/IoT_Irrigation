@@ -20,7 +20,8 @@
 | **Documentation** | [`Drivers/EC600N/README.md`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Drivers/EC600N/README.md) | **Created** | Quick-start guide, hardware wiring pinout, AT command mapping table, and usage examples. |
 | **Actuator Control** | [`Core/Inc/irrigation_ctrl.h`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Inc/irrigation_ctrl.h) | **Created** | Declared actuator state structure, safety interlock functions, and REST API processor. |
 | **Actuator Source** | [`Core/Src/irrigation_ctrl.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/irrigation_ctrl.c) | **Created** | Hardware driver for PB4 (pump) and PB5, PB8, PB9 (valves) with safety interlock and JSON REST parser. |
-| **Application** | [`Core/Src/main.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/main.c) | **Updated** | Integrated EC600N 4G driver, actuator initialization, safety interlock self-test, and MQTT/SMS REST command handling. |
+| **Application** | [`Core/Src/main.c`](file:///D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c) | **Updated** | Integrated EC600N 4G driver, actuator initialization, safety interlock self-test, multi-topic MQTT dispatcher (control, action ACK, sensor sync, sync request), and ADC1 analog sensor reader. |
+| **User Documentation** | [`INSTRUCTION_USAGE.md`](file:///D:/Project_VSCode/IoT_Irrigation/firmware/INSTRUCTION_USAGE.md) | **Created** | Comprehensive instruction guide covering hardware pinouts, safety interlock rules, REST payload schemas, driver API reference, multi-topic MQTT routing, and real-time WebSocket telemetry sync. |
 
 ---
 
@@ -97,15 +98,28 @@
 - **Backend Communication Helpers:**
   - `irrigation_poll_backend_api()`: Polls backend endpoint using `ec600n_http_get()` and applies received control commands.
   - `irrigation_report_status_to_backend()`: Reports live actuator statuses back to backend using `ec600n_http_post()`.
-  - Incoming MQTT messages (`irrigation/control`) and incoming SMS messages are routed directly to `irrigation_process_rest_payload()`.
+  - Incoming SMS messages are routed directly to `irrigation_process_rest_payload()`.
+
+### 2.6 Multi-Topic MQTT Architecture & Real-Time Sensor Telemetry
+- **File:** [`Core/Src/main.c`](file:///D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c)
+- **Multi-Topic Routing:**
+  - `irrigation/{device_id}/control` (Downlink): Receives relay switching commands for the motor pump (PB4) and 3 solenoid valves (PB5, PB8, PB9).
+  - `irrigation/{device_id}/ack` (Uplink): Immediately returns the execution confirmation and updated hardware state back to the backend.
+  - `irrigation/{device_id}/sensors` (Uplink): Periodically broadcasts (every 10s) live ADC sensor readings (PA0–PA3) and actuator statuses for real-time WebSocket dashboard sync.
+  - `irrigation/{device_id}/sync_req` (Downlink): On-demand telemetry sync request from backend or web client.
+- **Analog Sensor Acquisition:**
+  - Reads 4 soil moisture sensors on ADC1 channels 0 to 3 (`PA0`, `PA1`, `PA2`, `PA3`) with channel switching and single-conversion sampling.
+  - Packages sensor readings into JSON alongside cellular signal quality (`rssi_dbm`) and actuator states.
+- **Code Refactoring (`ec600n_system_init`):**
+  - Encapsulated entire 80+ line EC600N initialization sequence (driver init, callback registration, AT test, SIM verification, 4G registration, PDP activation, RTC sync, ping test, and MQTT multi-topic subscription) into a single clean `void ec600n_system_init(void)` function, streamlining `main()` down to a concise 2-step setup.
 
 ---
 
 ## 3. Build & Resource Verification
 
-- **Compiler:** `arm-none-eabi-gcc 8.2.1`
-- **Build System:** `CMake 3.22` + `Ninja`
+- **Compiler:** `arm-none-eabi-gcc 15.2.1 / 8.2.1`
+- **Build System:** `CMake 3.22+` + `Ninja`
 - **Build Status:** Clean compilation (`0 errors, 0 warnings`)
 - **Memory Consumption:**
-  - **Flash:** `57,880 bytes / 262,144 bytes (22.08%)`
-  - **RAM:** `11,632 bytes / 65,536 bytes (17.75%)`
+  - **Flash:** `64,184 bytes / 262,144 bytes (24.48%)`
+  - **RAM:** `11,928 bytes / 65,536 bytes (18.20%)`

@@ -1,5 +1,8 @@
-main.c:64:13:on_mqtt_message_received	152	static
-main.c:77:13:on_sms_received	232	static
-main.c:94:5:main	184	static
-main.c:245:6:SystemClock_Config	88	static
-main.c:294:6:Error_Handler	4	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:71:17:read_soil_moisture_raw	40	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:86:13:send_sensor_telemetry_sync	352	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:112:13:on_mqtt_message_received	352	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:140:13:on_sms_received	232	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:156:6:ec600n_system_init	72	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:253:5:main	152	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:353:6:SystemClock_Config	88	static
+D:/Project_VSCode/IoT_Irrigation/firmware/Core/Src/main.c:402:6:Error_Handler	4	static
