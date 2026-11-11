@@ -1,0 +1,12 @@
+irrigation_ctrl.c:24:9:irrigation_get_open_valves_count	24	static
+irrigation_ctrl.c:33:6:irrigation_is_pump_allowed	24	static
+irrigation_ctrl.c:43:6:irrigation_init	8	static
+irrigation_ctrl.c:59:6:irrigation_emergency_stop	8	static
+irrigation_ctrl.c:76:21:irrigation_apply_state	48	static
+irrigation_ctrl.c:121:21:irrigation_set_state	32	static
+irrigation_ctrl.c:132:6:irrigation_get_state	16	static
+irrigation_ctrl.c:142:13:parse_boolean_value	16	static
+irrigation_ctrl.c:158:20:find_key	24	static
+irrigation_ctrl.c:179:21:irrigation_process_rest_payload	104	static
+irrigation_ctrl.c:287:21:irrigation_poll_backend_api	560	static
+irrigation_ctrl.c:310:21:irrigation_report_status_to_backend	456	static

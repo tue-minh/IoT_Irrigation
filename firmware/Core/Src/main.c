@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ec600n.h"
+#include "irrigation_ctrl.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -63,6 +64,14 @@ void SystemClock_Config(void);
 static void on_mqtt_message_received(const char *topic, const uint8_t *payload, uint16_t len)
 {
   ec600n_log("[APP] MQTT Recv on topic '%s': %.*s\r\n", topic, len, payload);
+
+  /* Process REST API JSON control command from backend via MQTT */
+  char json_buf[128] = {0};
+  if (len < sizeof(json_buf)) {
+    memcpy(json_buf, payload, len);
+    json_buf[len] = '\0';
+    irrigation_process_rest_payload(json_buf, NULL, 0);
+  }
 }
 
 static void on_sms_received(uint8_t index)
@@ -71,6 +80,9 @@ static void on_sms_received(uint8_t index)
   ec600n_sms_t sms;
   if (ec600n_sms_read(&ec600n, index, &sms) == EC600N_OK) {
     ec600n_log("[APP] SMS content: %s\r\n", sms.text);
+    /* Process REST/command payload from SMS text */
+    irrigation_process_rest_payload(sms.text, NULL, 0);
+    ec600n_sms_delete(&ec600n, index);
   }
 }
 /* USER CODE END 0 */
@@ -115,6 +127,23 @@ int main(void)
   ec600n_log("\r\n==============================================\r\n");
   ec600n_log("   STM32F401 + Quectel EC600N 4G LTE System    \r\n");
   ec600n_log("==============================================\r\n");
+
+  /* 0. Initialize Irrigation Actuators: Motor Pump (PB4) and Valves (PB5, PB8, PB9) */
+  irrigation_init();
+
+  /* Demonstrate Safety Interlock Rule via REST payload simulation */
+  char test_resp[128];
+  ec600n_log("[APP] Testing Safety Interlock...\r\n");
+  /* Attempting to turn on pump with NO valves open -> DENIED by Safety Interlock */
+  irrigation_process_rest_payload("{\"pump\":1,\"valve1\":0,\"valve2\":0,\"valve3\":0}", test_resp, sizeof(test_resp));
+  ec600n_log("[APP] Interlock Test 1 (0 valves open): %s\r\n", test_resp);
+
+  /* Turning on Valve 1 + Pump -> ALLOWED */
+  irrigation_process_rest_payload("{\"pump\":1,\"valve1\":1,\"valve2\":0,\"valve3\":0}", test_resp, sizeof(test_resp));
+  ec600n_log("[APP] Interlock Test 2 (1 valve open): %s\r\n", test_resp);
+
+  /* Return to safe idle state (all off) */
+  irrigation_emergency_stop();
 
   /* 1. Initialize EC600N driver with USART1 2-way DMA */
   if (ec600n_init(&ec600n, &huart1) == EC600N_OK) {
@@ -182,6 +211,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint32_t last_heartbeat = 0;
+  uint32_t last_rest_poll = 0;
   while (1)
   {
     /* Service EC600N event loop and incoming DMA / URC data */
@@ -191,6 +221,15 @@ int main(void)
     if (HAL_GetTick() - last_heartbeat >= 1000) {
       last_heartbeat = HAL_GetTick();
       HAL_GPIO_TogglePin(LED_MCU_GPIO_Port, LED_MCU_Pin);
+    }
+
+    /* Optional: Periodic REST API poll from backend every 30 seconds */
+    if (HAL_GetTick() - last_rest_poll >= 30000) {
+      last_rest_poll = HAL_GetTick();
+      if (ec600n.net_info.ip_address[0] != '\0') {
+        /* Example: Poll custom backend REST endpoint */
+        /* irrigation_poll_backend_api(&ec600n, "http://api.yourdomain.com/irrigation/control", NULL, 0); */
+      }
     }
     /* USER CODE END WHILE */
 

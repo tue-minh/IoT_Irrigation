@@ -46,6 +46,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Drivers/EC600N/Src/ec600n.c
     Drivers/EC600N/Src/ec600n_at.c
+    Core/Src/irrigation_ctrl.c
 )
 
 # Add include paths

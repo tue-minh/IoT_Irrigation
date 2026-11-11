@@ -18,7 +18,9 @@
 | **High-Level Header** | [`Drivers/EC600N/Inc/ec600n.h`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Drivers/EC600N/Inc/ec600n.h) | **Created** | Declared high-level user API: SIM status, 4G network registration, signal quality (dBm/bars), PDP context / APN, RTC time, ping test, TCP sockets, hardware MQTT client, HTTP(S) client, and SMS text mode. |
 | **High-Level Source** | [`Drivers/EC600N/Src/ec600n.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Drivers/EC600N/Src/ec600n.c) | **Created** | Implemented all Quectel EC600N AT command routines and built-in URC dispatchers (`+QIURC: "recv"`, `+QIURC: "closed"`, `+QMTRECV:`, `+CMTI:`, `+CPIN:`, `+CEREG:`). |
 | **Documentation** | [`Drivers/EC600N/README.md`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Drivers/EC600N/README.md) | **Created** | Quick-start guide, hardware wiring pinout, AT command mapping table, and usage examples. |
-| **Application** | [`Core/Src/main.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/main.c) | **Updated** | Integrated EC600N initialization, self-test, SIM check, 4G network connection, RTC clock reading, ping test, and non-blocking event loop servicing in `while(1)`. |
+| **Actuator Control** | [`Core/Inc/irrigation_ctrl.h`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Inc/irrigation_ctrl.h) | **Created** | Declared actuator state structure, safety interlock functions, and REST API processor. |
+| **Actuator Source** | [`Core/Src/irrigation_ctrl.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/irrigation_ctrl.c) | **Created** | Hardware driver for PB4 (pump) and PB5, PB8, PB9 (valves) with safety interlock and JSON REST parser. |
+| **Application** | [`Core/Src/main.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/main.c) | **Updated** | Integrated EC600N 4G driver, actuator initialization, safety interlock self-test, and MQTT/SMS REST command handling. |
 
 ---
 
@@ -74,6 +76,29 @@
   8. Pings Google DNS (`8.8.8.8`) to verify end-to-end internet connectivity.
   9. Runs `ec600n_process(&ec600n)` inside `while(1)` to service DMA reception and URCs non-blockingly.
 
+### 2.5 Actuator Control (PB4, PB5, PB8, PB9) & Safety Interlock
+- **Files:** [`Core/Inc/irrigation_ctrl.h`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Inc/irrigation_ctrl.h), [`Core/Src/irrigation_ctrl.c`](file:///C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/Core/Src/irrigation_ctrl.c)
+- **Pin Mapping:**
+  - **PB4 (`motor_Pin`):** Motor Water Pump.
+  - **PB5 (`valve1_Pin`):** Solenoid Valve 1.
+  - **PB8 (`valve2_Pin`):** Solenoid Valve 2.
+  - **PB9 (`valve3_Pin`):** Solenoid Valve 3.
+- **Safety Interlock Rule:**
+  - The motor water pump is **ONLY permitted to run when 1, 2, or 3 valves are open**.
+  - If a command requests `pump: 1` with `0` valves open, the pump is automatically denied and kept `OFF`.
+  - If all open valves are closed while the pump is running, the pump is automatically shut down immediately.
+  - Hydraulic switching order is preserved: valves are opened *before* pump turns on; pump is stopped *before* valves close.
+- **REST API Payload Processor:**
+  - Supports standard backend JSON formats:
+    - Object format: `{"pump": 1, "valve1": 1, "valve2": 0, "valve3": 0}` (or booleans `true`/`false`).
+    - Array format: `{"pump": 1, "valves": [1, 0, 1]}`.
+    - URL query format: `pump=1&valve1=1`.
+  - Automatically produces JSON status/response strings for the backend.
+- **Backend Communication Helpers:**
+  - `irrigation_poll_backend_api()`: Polls backend endpoint using `ec600n_http_get()` and applies received control commands.
+  - `irrigation_report_status_to_backend()`: Reports live actuator statuses back to backend using `ec600n_http_post()`.
+  - Incoming MQTT messages (`irrigation/control`) and incoming SMS messages are routed directly to `irrigation_process_rest_payload()`.
+
 ---
 
 ## 3. Build & Resource Verification
@@ -82,5 +107,5 @@
 - **Build System:** `CMake 3.22` + `Ninja`
 - **Build Status:** Clean compilation (`0 errors, 0 warnings`)
 - **Memory Consumption:**
-  - **Flash:** `54,556 bytes / 262,144 bytes (20.81%)`
-  - **RAM:** `11,624 bytes / 65,536 bytes (17.74%)`
+  - **Flash:** `57,880 bytes / 262,144 bytes (22.08%)`
+  - **RAM:** `11,632 bytes / 65,536 bytes (17.75%)`

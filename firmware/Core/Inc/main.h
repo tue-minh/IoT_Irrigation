@@ -67,6 +67,14 @@ void Error_Handler(void);
 #define humidity_sensor3_GPIO_Port GPIOA
 #define humidity_sensor4_Pin GPIO_PIN_3
 #define humidity_sensor4_GPIO_Port GPIOA
+#define motor_Pin GPIO_PIN_4
+#define motor_GPIO_Port GPIOB
+#define valve1_Pin GPIO_PIN_5
+#define valve1_GPIO_Port GPIOB
+#define valve2_Pin GPIO_PIN_8
+#define valve2_GPIO_Port GPIOB
+#define valve3_Pin GPIO_PIN_9
+#define valve3_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
