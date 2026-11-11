@@ -1,0 +1,115 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "stm32cubemx::@768a070a0fe75716b479",
+					"jsonFile" : "target-stm32cubemx-Debug-2e773474ba86ab9eaf04.json",
+					"name" : "stm32cubemx",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Debug-f040eec181a89de70dbe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						0
+					],
+					"build" : "cmake/stm32cubemx",
+					"jsonFile" : "directory-cmake.stm32cubemx-Debug-720efe0a241989607e76.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "cmake/stm32cubemx",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "firmware",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "STM32_Drivers::@768a070a0fe75716b479",
+					"jsonFile" : "target-STM32_Drivers-Debug-0aa8e3081643267de7e1.json",
+					"name" : "STM32_Drivers",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "USB_Device_Library::@768a070a0fe75716b479",
+					"jsonFile" : "target-USB_Device_Library-Debug-c9cd7c180327e92f5be9.json",
+					"name" : "USB_Device_Library",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "firmware::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-firmware-Debug-668a3641097d98ab904e.json",
+					"name" : "firmware",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware/build/Debug",
+		"source" : "C:/Users/nguye/OneDrive/Desktop/IoT_Irrigation/firmware"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	}
+}
